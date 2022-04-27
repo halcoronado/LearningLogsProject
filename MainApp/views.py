@@ -1,4 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+
+from .forms import TopicForm
 from .models import Topic
 
 # Create your views here.
@@ -12,3 +14,24 @@ def topics(requests):
 
     return render(requests, 'MainApp/topics.html', context)
 
+def topic(request, topic_id):
+    topic = Topic.objects.get(id=topic_id)
+    entries = topic.entry_set.order_by('-date_added')
+## key is used on html page, value is the object used in view
+    context = {'topic':topic,'entries': entries}
+
+    return render(request, 'MainApp/topic.html',context)
+
+def new_topic(request):
+    if request.method != "POST":
+        form = TopicForm()
+
+    else:
+        form = TopicForm(data = request.POST)
+        
+        if form.is_valid():
+            new_topic = form.save()
+
+            return redirect('MainApp:topics')
+    context = {'form': form}
+    return render(request, 'MainApp/new_topic.html',context)
